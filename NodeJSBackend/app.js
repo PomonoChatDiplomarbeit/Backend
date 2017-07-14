@@ -20,6 +20,7 @@ io.on('connection', function(socket) {
     socket.on('newuser', function() {
         if(!UserAlreadyExists(socket.id)) {
             users.set(shortid.generate(), socket.id)
+            console.log(users.key
         }
     });
 

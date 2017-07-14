@@ -1,0 +1,20 @@
+{
+  "name": "nodejsbackend",
+  "description": "Our Instant Messaging Server",
+  "main": "index.js",
+  "authors": [
+    "Pratljacic Dragan"
+  ],
+  "license": "ISC",
+  "homepage": "https://github.com/fabiantschofenig/PomonoChat",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "jquery": "^3.2.1"
+  }
+}

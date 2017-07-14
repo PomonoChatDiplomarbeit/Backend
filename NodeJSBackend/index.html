@@ -1,0 +1,22 @@
+<html>
+    <head>
+        <title>message sending</title>
+
+    </head>
+    <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
+    <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
+    <script>
+        var socket = io.connect('http://localhost:8001');    
+        $('#form').submit(function(){
+        socket.emit('message', $('#Input').val());
+        //socket.emit('message', "Input");
+        //$('#Input').val('');
+        return false;
+      });
+       socket.emit('privateChatMessage', $('#msg').val())
+    </script>
+    <body>
+        <input type="text" id="msg">
+        <button id="emitrequest">send</button>
+    </body>
+</html>

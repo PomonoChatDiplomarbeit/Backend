@@ -1,0 +1,9 @@
+{
+  "name": "crud-server",
+  "version": "0.0.0",
+  "description": "CrudServer",
+  "main": "app.js",
+  "author": {
+    "name": "sandro.unterkofler"
+  }
+}

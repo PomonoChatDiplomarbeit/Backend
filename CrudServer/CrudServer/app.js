@@ -1,6 +1,11 @@
 var MongoClient = require('mongodb').MongoClient;
 var url = "mongodb://127.0.0.1:27017/diplom";
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+var ObjectId = require('mongodb').ObjectId; 
+
+>>>>>>> master
 //MongoClient.connect(url, function (err, db) {
 //  if (err) throw err;
 //getFirstUser();
@@ -28,6 +33,7 @@ var a = [12341234, 123414];
 =======
 var ObjectId = require('mongodb').ObjectId; 
 
+<<<<<<< HEAD
 //MongoClient.connect(url, function (err, db) {
 //  if (err) throw err;
 //getFirstUser();
@@ -53,6 +59,8 @@ var a = [12341234, 123414];
 //ForwardMessageTo("596df46209b96a2ddca1fef4", "444");    -- db.collection("chat_group").findOne({ _id: a }, function (err, result) { 
 
 >>>>>>> master
+=======
+>>>>>>> master
 //deleteUser("596defef2b532b3420d2239d");
 
 //insertUser("Dragan", 32432431);
@@ -60,6 +68,7 @@ var a = [12341234, 123414];
 //insertgroup("Bangers", a);
 //var b = GetMessagesForChat(2, 111, 222);
 //console.log(b);
+<<<<<<< HEAD
 <<<<<<< HEAD
 ForwardMessageTo("596df46209b96a2ddca1feee", 333);
 function deleteUser(_uid) {
@@ -70,6 +79,8 @@ function deleteUser(_uid) {
             if (err) throw err;
             console.log("1 document deleted");
 =======
+=======
+>>>>>>> master
 //ForwardMessageTo("596df46209b96a2ddca1feee", 333);
 
 //addUserToGroup("1", "596df2abb8ed8037a8c1452c");
@@ -123,11 +134,15 @@ function insertmessage(_sender, _receiver, _type, _data) {
         db.collection("message").insertOne(myobj, function (err, res) {
             if (err) throw err;
             console.log("1 record inserted");
+<<<<<<< HEAD
+>>>>>>> master
+=======
 >>>>>>> master
             db.close();
         });
     });
 }
+<<<<<<< HEAD
 <<<<<<< HEAD
 
 function updateUser() {
@@ -139,6 +154,8 @@ function updateUser() {
             if (err) throw err;
             console.log("1 record updated");
 =======
+=======
+>>>>>>> master
 //+
 function insertgroup(_groupname, _members) {
     MongoClient.connect(url, function (err, db) {
@@ -162,6 +179,7 @@ function deleteGroup(group_id) {
         db.collection("chat_group").deleteOne({ _id: a }, function (err, obj) {
             if (err) throw err;
             console.log("1 document deleted");
+<<<<<<< HEAD
 >>>>>>> master
             db.close();
         });
@@ -176,11 +194,14 @@ function insertUser(_username, _phonenumber) {
         db.collection("user").insertOne(myobj, function (err, res) {
             if (err) throw err;
             console.log("1 record inserted");
+=======
+>>>>>>> master
             db.close();
         });
     });
 
 }
+<<<<<<< HEAD
 
 function insertmessage(_sender, _receiver, _type, _data) {
     MongoClient.connect(url, function (err, db) {
@@ -191,6 +212,8 @@ function insertmessage(_sender, _receiver, _type, _data) {
             if (err) throw err;
             console.log("1 record inserted");
 =======
+=======
+>>>>>>> master
 //+
 function deleteMessage(MesssageID) {
     var a = ObjectId(MesssageID);
@@ -211,11 +234,15 @@ function deleteUser(user_id) {
         db.collection("user").deleteOne({ _id: a }, function (err, obj) {
             if (err) throw err;
             console.log("1 document deleted");
+<<<<<<< HEAD
+>>>>>>> master
+=======
 >>>>>>> master
             db.close();
         });
     });
 }
+<<<<<<< HEAD
 <<<<<<< HEAD
 
 function insertgroup(_groupname, _members) {
@@ -227,6 +254,8 @@ function insertgroup(_groupname, _members) {
             if (err) throw err;
             console.log("1 record inserted");
 =======
+=======
+>>>>>>> master
 //+
 //***********************update***********************
 function updateUser(userId, newValues) {
@@ -262,16 +291,25 @@ function updateGroup(groupID, newValues) {
         db.collection("chat_group").updateOne({ _id: a }, newValues, function (err, res) {
             if (err) throw err;
             console.log("1 record updated");
+<<<<<<< HEAD
+>>>>>>> master
+=======
 >>>>>>> master
             db.close();
         });
     });
 }
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+//+
+//***********************others***********************
+>>>>>>> master
 
 function GetMessagesForChat(NrOfMessagesToLoad, _sender, _receiver) {
     MongoClient.connect(url, function (err, db) {
         if (err) throw err;
+<<<<<<< HEAD
         var res;
 =======
 //+
@@ -283,6 +321,9 @@ function GetMessagesForChat(NrOfMessagesToLoad, _sender, _receiver) {
         if (err) throw err;
  
 >>>>>>> master
+=======
+ 
+>>>>>>> master
         var j = 0;
         db.collection("message").find({}).toArray(function (err, result) {
             if (err) throw err;
@@ -290,7 +331,11 @@ function GetMessagesForChat(NrOfMessagesToLoad, _sender, _receiver) {
                 if (j < NrOfMessagesToLoad) {
                     if ((result[i].Sender == _sender && result[i].Receiver == _receiver) || (result[i].Sender == _receiver && result[i].Receiver == _sender)) {
 <<<<<<< HEAD
+<<<<<<< HEAD
                         console.log(result[i]);
+=======
+                        
+>>>>>>> master
                         j++;
                     }
                 }
@@ -303,6 +348,7 @@ function GetMessagesForChat(NrOfMessagesToLoad, _sender, _receiver) {
         return res;
     });
 }
+<<<<<<< HEAD
 
 =======
                         
@@ -321,6 +367,9 @@ function GetMessagesForChat(NrOfMessagesToLoad, _sender, _receiver) {
 }
 //-
 >>>>>>> master
+=======
+//-
+>>>>>>> master
 function ForwardMessageTo(MessageID, newReceiver) {
     MongoClient.connect(url, function (err, db) {
         if (err) throw err;
@@ -336,7 +385,10 @@ function ForwardMessageTo(MessageID, newReceiver) {
     });
 }
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> master
 //+
 function SearchUser(searchString) {
     var a;
@@ -379,5 +431,8 @@ function checkUsers(_phonenumber) {
    
    
 }
+<<<<<<< HEAD
+>>>>>>> master
+=======
 >>>>>>> master
 

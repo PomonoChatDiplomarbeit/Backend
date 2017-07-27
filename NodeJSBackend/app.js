@@ -31,6 +31,7 @@ io.on('connection', function(socket) {
 
     socket.on('privateChatMessage', function(message, toId, msgtype) {
         console.log("got message: " + message)
+        //todo CS6 class anstelle von on-the-fly Object
         messages.push({
             mguid: shortid.generate(),
             sender: socket.id,
@@ -43,7 +44,8 @@ io.on('connection', function(socket) {
         allSockets[toId-1].emit('newPrivateMessage_response', {data: message});
     });
 });
-
+//todo: unbedingt alles null/undefined safe machen bitte
+//todo: Operationen direkt auf der Datenbank
 function UserAlreadyExists(socketid) {
     users.forEach(function(key, value) {
         if(socketid == key)

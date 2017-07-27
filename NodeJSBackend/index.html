@@ -1,0 +1,64 @@
+<!DOCTYPE html>  
+<html>  
+    <head>
+      <title> Real Time Chat </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1" />
+    </head>
+    <body>
+        <div>
+          <p>Telephone number:</p><input type="text" id="telNR" value="06769233031"/>
+            <p>username:</p><input type="text" id="username" value="Dragan" />
+          <button id="createUser" onclick="registerNewUser();">Request new user</button> <label id="SessionID">SID: </label>
+        </div>
+        <div>
+          <h1> Chat! </h1>
+          <form>
+              <input id="message" type="text" placeholder="message">
+              <input type="submit" value="Send">
+          </form>
+
+          <ul id="thread"></ul>
+        </div>
+
+        <script
+        src="https://code.jquery.com/jquery-3.1.1.min.js"
+        integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+        crossorigin="anonymous"></script>
+
+        <script src="/socket.io/socket.io.js"></script> 
+    </body>
+    <script>
+
+      
+      // initializing socket, connection to server
+         var socket = io.connect('http://localhost:4200');
+         socket.on('connect', function(data) {
+            socket.emit('join', 'Hello server from client');
+         });
+
+         // listener for 'thread' event, which updates messages
+         socket.on('thread', function(data) {
+            $('#thread').append('<li>' + data + '</li>');
+         });
+
+         socket.on('userNowRegistered', function(sessionID) {
+            $('#SessionID').text("Session ID: " + sessionID);
+         });
+
+         // prevents form from submitting and sends a message to server
+         $('form').submit(function(){
+            var message = $('#message').val();
+            console.log("Sending "+message)
+            socket.emit('messages', message);
+            this.reset();
+            return false;
+        });
+
+        function registerNewUser() {
+            var number = $('#telNR').val();
+            var usern = $('#username').val();
+          console.log("Sending nr and username "+ number + " " + usern);
+          socket.emit('newUser', { telNR: number, username: usern });
+        }
+    </script>
+</html> 

@@ -271,7 +271,4 @@ function checkUsers(_phonenumber) {
 server.listen(port);  
 console.log("Server is up and running. Listening on port: " + port);
 
-<<<<<<< HEAD
-=======
 //todo: unbedingt alles null/undefined safe machen bitte
->>>>>>> master

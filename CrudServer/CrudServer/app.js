@@ -1,5 +1,5 @@
 var MongoClient = require('mongodb').MongoClient;
-var url = "mongodb://127.0.0.1:27017/diplom";
+var url = "mongodb://10.157.80.106:27017/diplom";
 var ObjectId = require('mongodb').ObjectId; 
 
 //MongoClient.connect(url, function (err, db) {

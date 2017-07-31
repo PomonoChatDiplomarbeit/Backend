@@ -1,0 +1,84 @@
+﻿<!DOCTYPE html>
+
+<<html lang="en">
+<head>
+    <meta name="google-signin-scope" content="profile email">
+    <meta name="google-signin-client_id" content="560246102482-i768264s0kek5uov0qaiv5sltommnbad.apps.googleusercontent.com">
+    <script src="https://apis.google.com/js/platform.js" async defer></script>
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js"
+            integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+            crossorigin="anonymous"></script>
+    <script src="/socket.io/socket.io.js"></script> 
+</head>
+<body>
+    <div class="g-signin2" data-onsuccess="onSignIn" data-theme="dark"></div>
+
+    <div>
+        <h1> Chat! </h1>
+        <form>
+            <p id="gid">ID</p>
+            <input id="to" type="text" />
+            <input id="message" type="text" placeholder="message">
+            <input type="submit" value="Send">
+        </form>
+        <ul id="thread"></ul>
+    </div>
+    <script>
+        
+    </script>
+    <script>
+        var gid;
+        var socket = io.connect('http://localhost:8080');
+        function onSignIn(googleUser) {
+            // Useful data for your client-side scripts:
+            var profile = googleUser.getBasicProfile();
+            console.log("ID: " + profile.getId()); // Don't send this directly to your server!
+            gid = profile.getId();
+            console.log('Full Name: ' + profile.getName());
+            console.log('Given Name: ' + profile.getGivenName());
+            console.log('Family Name: ' + profile.getFamilyName());
+            console.log("Image URL: " + profile.getImageUrl());
+            console.log("Email: " + profile.getEmail());
+            $('#gid').append("ID: " + profile.getId());
+            // The ID token you need to pass to your backend:
+            var id_token = googleUser.getAuthResponse().id_token;
+            console.log("ID Token: " + id_token);
+            
+            socket.emit('grantaccess', profile.getId());
+            // initializing socket, connection to server
+
+            
+        };
+
+        socket.on('connect', function (data) {
+            socket.emit('join', 'Hello server from client');
+        });
+
+        // listener for 'thread' event, which updates messages
+        socket.on('thread', function (data) {
+            $('#thread').append('<li>' + data + '</li>');
+        });
+
+        socket.on('userNowRegistered', function (sessionID) {
+            $('#SessionID').text("Session ID: " + sessionID);
+        });
+
+         // prevents form from submitting and sends a message to server
+         $('form').submit(function () {
+             var message = $('#message').val();
+             var to = $('#to').val();
+             console.log("Sending " + message)
+             socket.emit('messages', to, message);
+             this.reset();
+             return false;
+         });
+
+         function registerNewUser() {
+             var number = $('#telNR').val();
+             var usern = $('#username').val();
+             console.log("Sending nr and username " + number + " " + usern);
+             socket.emit('newUser', { telNR: number, username: usern });
+         }
+    </script>
+</body>
+</html>

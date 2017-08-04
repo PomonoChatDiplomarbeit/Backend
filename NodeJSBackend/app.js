@@ -56,8 +56,8 @@ io.on('connection', function(socket) {
         socket.emit('loginResponse', {status: "loggedIn", user: username});
     });
 
-    socket.on('getAllChatPartners', function(username) {
-
+    socket.on('getAllChatPartners', function(sender, reciever) {
+        socket.emit('messageResponse', { data: GetMessagesForChat(50, sender, reciever) });
     });
 
     socket.on('storeNewUser', function(data){
@@ -238,19 +238,21 @@ function GetMessagesForChat(NrOfMessagesToLoad, _sender, _receiver) {
         var messageCount = 0;
         db.collection("message").find({}).toArray(function (err, result) {
             if (err) throw err;
-            result.array.forEach(function(element) {
+            //console.log(result);
+            result.forEach(function(element) {
                 if (messageCount < NrOfMessagesToLoad) {
                     if((element.Sender == _sender && element.Receiver == _receiver) || (element.Sender == _receiver && element.Receiver == _sender)) {
+                        console.log(element);
                         messageObject.push(element);
                         messageCount++;
                     }
                 }
             }, this);
-            
+            return messageObject;
         });
         db.close();
     });
-    return messageObject;
+    
 }
 //-
 function ForwardMessageTo(MessageID, newReceiver) {

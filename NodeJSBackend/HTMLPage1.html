@@ -13,11 +13,14 @@
 <body>
     <div class="g-signin2" data-onsuccess="onSignIn" data-theme="dark"></div>
     <button onclick="Test();">Test button</button>
+    <input type="text" id="username"/>
+    <button onclick="Test2();">Store username with socketid</button>
 
     <div>
         <h1> Chat! </h1>
         <form>
             <p id="gid">ID</p>
+            <input id="from" type="text" />
             <input id="to" type="text" />
             <input id="message" type="text" placeholder="message">
             <input type="submit" value="Send">
@@ -27,7 +30,7 @@
     <script>
         console.log("hey");
         var gid;
-        socket = io.connect('http://localhost:8080');
+        var socket = io.connect('http://localhost:8080');
         function onSignIn(googleUser) {
             // Useful data for your client-side scripts:
             var profile = googleUser.getBasicProfile();
@@ -53,18 +56,24 @@
             console.log('in test');
             socket.emit('test');
         }
+        function Test2() {
+            console.log('in test2');
+            socket.emit('login', $('#username').val());
+        }
 
-        socket.on('connect', function () {
-            socket.emit('join', 'Hello server from client');
-        });
+        /*socket.on('connect', function () {
+            socket.emit('connect');
+        });*/
 
-        socket.on('connected', function() {
-            console.log("Hey");
+        socket.on('loginResponse', function(data) {
+            if(data.status == "loggedIn")
+                console.log("Logged in");
         })
 
         // listener for 'thread' event, which updates messages
-        socket.on('thread', function (data) {
-            $('#thread').append('<li>' + data + '</li>');
+        socket.on('messageResponse', function (data) {
+            console.log("im in now in message response")
+            $('#thread').append('<li>' + data.msgObject.Data + '</li>');
         });
 
         socket.on('userNowRegistered', function (sessionID) {
@@ -74,9 +83,10 @@
          // prevents form from submitting and sends a message to server
          $('form').submit(function () {
              var message = $('#message').val();
+             var from = $('#from').val();
              var to = $('#to').val();
-             console.log("Sending " + message)
-             socket.emit('sendNewMessage', to, message);
+             console.log("Sending " + { sender: '102922120355654028822', reciever: '106704918007689248932', Type: 'text', Data: message});
+             socket.emit('pushMessage',{ Sender: from, Reciever: to, Type: "text", Data: message});
              this.reset();
              return false;
          });

@@ -25,11 +25,16 @@ io.on('connection', function(socket) {
 
     socket.on('test', function() {
         console.log("Im in");
-        console.log(GetMessagesForChat(2, 111, 222));
+        console.log(getAllChatPartners(111));
         socket.emit('connected');
     });
+
+    socket.on('test2', function(gid) {
+        sockets.push({googleid: gid, socketid: socket.id});
+    });
+    console.log(socket.id + " connected");
     socket.on('connect', function () {
-        console.log(socket.id);
+        console.log(socket.id + " connected.");
         socket.emit('connected');
     });
 
@@ -47,30 +52,25 @@ io.on('connection', function(socket) {
     });
 
     socket.on('login', function(username) {
-        if(getSocketIDfromUsername(username))
-            onlineUsers.push('loginResponse', {user: username, socketid: getSocketIDfromUsername(username)});
-
-        else
-            onlineUsers.push({user: username, socketid: socket.id});
+        onlineUsers.push({user: username, socketid: socket.id});
 
         socket.emit('loginResponse', {status: "loggedIn", user: username});
     });
 
+    //DOES NOT QUITE WORK PROPERLY
     socket.on('getAllChatPartners', function(sender, reciever) {
-        socket.emit('messageResponse', { data: GetMessagesForChat(50, sender, reciever) });
+        socket.emit('messagesResponse', { data: GetMessagesForChat(50, sender, reciever) });
     });
 
-    socket.on('storeNewUser', function(data){
-        var generatedSessionID = generateSessionID();
-        insertUser(data.username, data.telNR);
-        console.log("Recieved nr and session id: " + data.telNR + " " + generatedSessionID + " " + data.username);
-        socket.emit('userNowRegistered', generatedSessionID);
-    });
+    socket.on('pushMessage', function(message) {
+        console.log(message);
+        if(message != undefined) {
+            socket.broadcast.to(getSocketIDfromUsername(message.Reciever)).emit('messageResponse', { msgObject: message, status: "successful" });
+            console.log("message was not undefined");
+        }
 
-    socket.on('sendNewMessage', function(to, message) {
-        console.log("Recieved: " + message);
-        console.log("Emitting to: " + getSocketIDfromGID(to));
-        io.to(getSocketIDfromGID(to)).emit('thread', message);
+        else 
+            io.to(getSocketIDfromUsername(message.Sender)).emit('messageResponse', { msgObject: message, status: "failed" });
     });
 
     socket.on('disconnectUser', function(socket){
@@ -78,6 +78,17 @@ io.on('connection', function(socket) {
         console.log("User went offline. ");
     });
 });
+
+// CUSTOM FUNCTIONS BEGINNING
+function getSocketIDfromUsername(username) {
+    var socketid;
+    onlineUsers.forEach(function (element){
+        if(element.user == username) {
+            socketid = element.socketid;
+        }
+    });
+    return socketid;
+}
 
 function removeSocket(socket) {
     for(var i = 0; i < sockets.length; i++) {
@@ -111,7 +122,9 @@ function generateSessionID() {
     return sha.digest('hex');
 };
 
-// ALL DB METHODS
+// CUSTOM FUNCTIONS END
+
+// ALL DB METHODS BEGINNING
 function insertUser(_username, _phonenumber) {
 
     MongoClient.connect(url, function (err, db) {
@@ -254,7 +267,18 @@ function GetMessagesForChat(NrOfMessagesToLoad, _sender, _receiver) {
     });
     
 }
-//-
+
+function getAllChatPartners(_sender) {
+    var allChatPartners = [];
+    MongoClient.connect(url, function (err, db) {
+        if (err) throw err;
+        var collection = db.collection("message");
+
+        db.close();
+    });
+    
+}
+
 function ForwardMessageTo(MessageID, newReceiver) {
     MongoClient.connect(url, function (err, db) {
         if (err) throw err;
@@ -307,9 +331,8 @@ function checkUsers(_phonenumber) {
         });
     });
 }
-
-
 // END ALL DB METHODS
+
 server.listen(port);  
 console.log("Server is up and running. Listening on port: " + port);
 

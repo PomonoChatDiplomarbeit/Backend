@@ -6,26 +6,13 @@
     </head>
     <body>
         <div>
-<<<<<<< HEAD
-            <h1>Registering User</h1>
-            <p>Telephone number:</p><input type="text" id="telNR" value="06769233031"/>
-=======
           <p>Telephone number:</p><input type="text" id="telNR" value="06769233031"/>
->>>>>>> 9f689da6e5e730c12e93a76d67f35c46afd808b7
             <p>username:</p><input type="text" id="username" value="Dragan" />
           <button id="createUser" onclick="registerNewUser();">Request new user</button> <label id="SessionID">SID: </label>
         </div>
         <div>
-<<<<<<< HEAD
-        </div>
-        <div>
           <h1> Chat! </h1>
           <form>
-              <input id="to" type="text" />
-=======
-          <h1> Chat! </h1>
-          <form>
->>>>>>> 9f689da6e5e730c12e93a76d67f35c46afd808b7
               <input id="message" type="text" placeholder="message">
               <input type="submit" value="Send">
           </form>
@@ -60,16 +47,9 @@
 
          // prevents form from submitting and sends a message to server
          $('form').submit(function(){
-<<<<<<< HEAD
-             var message = $('#message').val();
-             var to = $('#to').val();
-            console.log("Sending "+message)
-            socket.emit('messages', to, message);
-=======
             var message = $('#message').val();
             console.log("Sending "+message)
             socket.emit('messages', message);
->>>>>>> 9f689da6e5e730c12e93a76d67f35c46afd808b7
             this.reset();
             return false;
         });

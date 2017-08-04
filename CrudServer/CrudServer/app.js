@@ -1,8 +1,12 @@
 var MongoClient = require('mongodb').MongoClient;
+<<<<<<< HEAD
 var url = "mongodb://127.0.0.1:27017/diplom";
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+=======
+var url = "mongodb://10.157.80.106:27017/diplom";
+>>>>>>> 2640fa1d3d128f58201d0adcb854f61d348ef481
 var ObjectId = require('mongodb').ObjectId; 
 
 >>>>>>> master

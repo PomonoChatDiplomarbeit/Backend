@@ -65,12 +65,12 @@ io.on('connection', function(socket) {
     socket.on('pushMessage', function(message) {
         console.log(message);
         if(message != undefined) {
-            socket.broadcast.to(getSocketIDfromUsername(message.Reciever)).emit('messageResponse', { msgObject: message, status: "successful" });
+            socket.broadcast.to(getSocketIDfromUsername(message.reciever)).emit('messageResponse', { msgObject: message, status: "successful" });
             console.log("message was not undefined");
         }
 
         else 
-            io.to(getSocketIDfromUsername(message.Sender)).emit('messageResponse', { msgObject: message, status: "failed" });
+            io.to(getSocketIDfromUsername(message.sender)).emit('messageResponse', { msgObject: message, status: "failed" });
     });
 
     socket.on('disconnectUser', function(socket){

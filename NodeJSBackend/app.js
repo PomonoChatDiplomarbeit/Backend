@@ -22,21 +22,7 @@ app.get('/', function(req, res,next) {
 });
 
 io.on('connection', function(socket) {  
-
-    socket.on('test', function() {
-        console.log("Im in");
-        console.log(getAllChatPartners(111));
-        socket.emit('connected');
-    });
-
-    socket.on('test2', function(gid) {
-        sockets.push({googleid: gid, socketid: socket.id});
-    });
-    console.log(socket.id + " connected");
-    socket.on('connect', function () {
-        console.log(socket.id + " connected.");
-        socket.emit('connected');
-    });
+    socket.emit('connected', { status: "online" });
 
     socket.on('connectWithGoogle', function (gid) {
         if(!getSocketIDfromGID(gid)) {
@@ -51,33 +37,80 @@ io.on('connection', function(socket) {
         }
     });
 
-    socket.on('login', function(username) {
-        onlineUsers.push({user: username, socketid: socket.id});
-
-        socket.emit('loginResponse', {status: "loggedIn", user: username});
-    });
-
-    //DOES NOT QUITE WORK PROPERLY
-    socket.on('getAllChatPartners', function(sender, reciever) {
-        socket.emit('messagesResponse', { data: GetMessagesForChat(50, sender, reciever) });
+    socket.on('login', function(givenUser) {
+        onlineUsers.push({user: givenUser, socketid: socket.id});
+        socket.emit('loginResponse', {status: "loggedIn", user: givenUser});
     });
 
     socket.on('pushMessage', function(message) {
         console.log(message);
         if(message != undefined) {
-            socket.broadcast.to(getSocketIDfromUsername(message.reciever)).emit('messageResponse', { textToDisplay: message.text, status: "successful" });
-            console.log("message was not undefined");
+            console.log("Socket id: " + getSocketIDfromUsername(message.reciever) + " Message: " + message.data);
+            socket.broadcast.to(getSocketIDfromUsername(message.reciever)).emit('messageResponse', { textToDisplay: message.data, status: "successful" });
+            insertmessage(message.sender, message.reciever, "text", message.data);
         }
 
         else 
-            io.to(getSocketIDfromUsername(message.sender)).emit('messageResponse', { textToDisplay: message.text, status: "failed" });
-    });
+            io.to(getSocketIDfromUsername(message.sender)).emit('messageResponse', { textToDisplay: "Message has no content, try it again", status: "failed" });
+    });  
 
     socket.on('disconnectUser', function(socket){
         removeSocket(socket);
+        socket.emit('disconnected', { status: "offline" });
         console.log("User went offline. ");
     });
+
+
+
+    //SOCKETIO FUNCTIONS FOR ROOMS
+
+    socket.on('getAllRooms', function(username) {
+        socket.emit('roomResponse', { room: getAllRooms(username) });
+    });
+
+    socket.on('createRoom', function(room) {
+        var idgenerator = new IDGenerator();
+        room.id = idgenerator.generate();
+
+        insertRoom(room);
+    });
+
+    socket.on('pushMessageRoom', function(roomid, message) {
+        var myRoom;
+        if(message != undefined) {
+            myRoom = getRoom(roomid);
+            socket.broadcast.to(myRoom.ID).emit('messageResponse', { textToDisplay: message.data, status: "successful" });
+            insertmessage(getUserWithSocketID(socket.id), message.type, message.data);
+        }
+
+        else 
+            io.to(socket.id).emit('messageResponse', { textToDisplay: "Message has no content, try it again", status: "failed" });
+    });
 });
+
+(function() {
+    function IDGenerator() {
+        this.length = 8;
+        this.timestamp = +new Date;
+        
+        var _getRandomInt = function( min, max ) {
+        return Math.floor( Math.random() * ( max - min + 1 ) ) + min;
+        }
+        
+        this.generate = function() {
+            var ts = this.timestamp.toString();
+            var parts = ts.split( "" ).reverse();
+            var id = "";
+            
+            for( var i = 0; i < this.length; ++i ) {
+            var index = _getRandomInt( 0, parts.length - 1 );
+            id += parts[index];	 
+            }
+            
+            return id;
+        }
+    }
+})();
 
 // CUSTOM FUNCTIONS BEGINNING
 function getSocketIDfromUsername(username) {
@@ -88,6 +121,17 @@ function getSocketIDfromUsername(username) {
         }
     });
     return socketid;
+}
+
+function getUserWithSocketID(socketid) {
+    var username;
+    onlineUsers.forEach(function (user) {
+        if(user.socketid == socketid) {
+            username = user.username;
+            break;
+        }
+    }, this);
+    return username;
 }
 
 function removeSocket(socket) {
@@ -116,33 +160,30 @@ function userAlreadyExists(socketid) {
     return false;
 }
 
-function generateSessionID() {
-    var sha = crypto.createHash('sha256');
-    sha.update(Math.random().toString());
-    return sha.digest('hex');
-};
-
 // CUSTOM FUNCTIONS END
 
 // ALL DB METHODS BEGINNING
-function insertUser(_username, _phonenumber) {
-
-    MongoClient.connect(url, function (err, db) {
-        if (err) throw err;
-        var myobj = { username: _username, phonenumber: _phonenumber };
-        db.collection("user").insertOne(myobj, function (err, res) {
+function insertUser(_username) {
+        MongoClient.connect(url, function (err, db) {
             if (err) throw err;
-            console.log("1 record inserted with values(" + _username + " " + _phonenumber + " inserted)");
-            db.close();
+            var myobj = { username: _username};
+            db.collection("user").insertOne(myobj, function (err, res) {
+                if (err) throw err;
+                console.log("1 record inserted");
+                
+                db.close();
+            });
         });
-    });
+    
+
+    
 }
-//+
-function insertmessage(_sender, _receiver, _type, _data) {
+
+function insertMessage(_sender, _type, _data) {
     MongoClient.connect(url, function (err, db) {
         if (err) throw err;
         var _timestamp = new Date().getTime();
-        var myobj = { timestamp: _timestamp, Sender: _sender, Receiver: _receiver, Type: _type, Data: _data };
+        var myobj = { sender: _sender, type: _type, data: _data, timestamp: _timestamp};
         db.collection("message").insertOne(myobj, function (err, res) {
             if (err) throw err;
             console.log("1 record inserted");
@@ -150,13 +191,12 @@ function insertmessage(_sender, _receiver, _type, _data) {
         });
     });
 }
-//+
-function insertgroup(_groupname, _members) {
+
+function insertRoom(_room) {
     MongoClient.connect(url, function (err, db) {
         if (err) throw err;
-        var myobj = { groupname: _groupname, members: _members };
 
-        db.collection("chat_group").insertOne(myobj, function (err, res) {
+        db.collection("room").insertOne(room, function (err, res) {
             if (err) throw err;
             console.log("1 record inserted");
             db.close();
@@ -165,49 +205,49 @@ function insertgroup(_groupname, _members) {
 }
 //+
 //***********************delete***********************
-function deleteGroup(group_id) {
-    var a = ObjectId(group_id);
+function deleteRoom(_roomid) {
+    var groupToDelete = ObjectId(_group_id);
     MongoClient.connect(url, function (err, db) {
         if (err) throw err;
 
-        db.collection("chat_group").deleteOne({ _id: a }, function (err, obj) {
+        db.collection("chat_group").deleteOne({ _id: groupToDelete }, function (err, obj) {
             if (err) throw err;
-            console.log("1 document deleted");
+            console.log("1 record deleted");
             db.close();
         });
     });
 }
 //+
-function deleteMessage(MesssageID) {
-    var a = ObjectId(MesssageID);
+function deleteMessage(_messageID) {
+    var messageToDelete = ObjectId(_messageID);
     MongoClient.connect(url, function (err, db) {
         if (err) throw err;
-        db.collection("message").deleteOne({ _id: a }, function (err, obj) {
+        db.collection("message").deleteOne({ _id: messageToDelete }, function (err, obj) {
             if (err) throw err;
-            console.log("1 document deleted");
+            console.log("1 record deleted");
             db.close();
         });
     });
 }
 //+
-function deleteUser(user_id) {
-    var a = ObjectId(user_id);
+function deleteUser(_userid) {
+    var userToDelete = ObjectId(_userid);
     MongoClient.connect(url, function (err, db) {
         if (err) throw err;
-        db.collection("user").deleteOne({ _id: a }, function (err, obj) {
+        db.collection("user").deleteOne({ _id: userToDelete }, function (err, obj) {
             if (err) throw err;
-            console.log("1 document deleted");
+            console.log("1 record deleted");
             db.close();
         });
     });
 }
 //+
 //***********************update***********************
-function updateUser(userId, newValues) {
-    var a = ObjectId(userId);
+function updateUser(_userId, _newValues) {
+    var updatedUser = ObjectId(_userid);
     MongoClient.connect(url, function (err, db) {
         if (err) throw err;
-        db.collection("user").updateOne({ _id: a }, newvalues, function (err, res) {
+        db.collection("user").updateOne({ _id: updatedUser }, _newValues, function (err, res) {
             if (err) throw err;
             console.log("1 record updated");
             db.close();
@@ -215,12 +255,12 @@ function updateUser(userId, newValues) {
     });
 }
 //+
-function updateMessage(messageID, b) {
-    var a = ObjectId(messageID);
+function updateMessage(_messageID, _newMessageValues) {
+    var updatedMessage = ObjectId(_messageID);
     MongoClient.connect(url, function (err, db) {
         if (err) throw err;
 
-        db.collection("message").updateOne({ _id: a }, b, function (err, res) {
+        db.collection("message").updateOne({ _id: updatedMessage }, _newMessageValuesd, function (err, res) {
             if (err) throw err;
             console.log("1 record updated");
             db.close();
@@ -228,12 +268,12 @@ function updateMessage(messageID, b) {
     });
 }
 //+
-function updateGroup(groupID, newValues) {
-    var a = ObjectId(groupID);
+function updateRoom(_group_id, _newValues) {
+    var updatedRoom = ObjectId(_group_id);
     MongoClient.connect(url, function (err, db) {
         if (err) throw err;
 
-        db.collection("chat_group").updateOne({ _id: a }, newValues, function (err, res) {
+        db.collection("chat_group").updateOne({ _id: updatedRoom }, _newValues, function (err, res) {
             if (err) throw err;
             console.log("1 record updated");
             db.close();
@@ -243,7 +283,7 @@ function updateGroup(groupID, newValues) {
 //+
 //***********************others***********************
 
-function GetMessagesForChat(NrOfMessagesToLoad, _sender, _receiver) {
+function getMessagesForChat(_nrOfMessagesToLoad, _sender, _receiver) {
     var messageObject = [];
     MongoClient.connect(url, function (err, db) {
         if (err) throw err;
@@ -253,7 +293,7 @@ function GetMessagesForChat(NrOfMessagesToLoad, _sender, _receiver) {
             if (err) throw err;
             //console.log(result);
             result.forEach(function(element) {
-                if (messageCount < NrOfMessagesToLoad) {
+                if (messageCount < _nrOfMessagesToLoad) {
                     if((element.Sender == _sender && element.Receiver == _receiver) || (element.Sender == _receiver && element.Receiver == _sender)) {
                         console.log(element);
                         messageObject.push(element);
@@ -268,18 +308,39 @@ function GetMessagesForChat(NrOfMessagesToLoad, _sender, _receiver) {
     
 }
 
-function getAllChatPartners(_sender) {
-    var allChatPartners = [];
+function getAllRooms(_username) {
+    var allRooms = [];
     MongoClient.connect(url, function (err, db) {
         if (err) throw err;
-        var collection = db.collection("message");
-
+        db.collection("room").find({}).toArray(function (err, result) {
+            if (err) throw err;
+            result.forEach(function(element) {
+                element.users.forEach(function(user) {
+                    if(user == _username)
+                        allRooms.push(element);
+                });
+            }, this);
+            return allRooms;
+        });
         db.close();
     });
-    
 }
 
-function ForwardMessageTo(MessageID, newReceiver) {
+function getRoom(_roomid) {
+    MongoClient.connect(url, function (err, db) {
+        if (err) throw err;
+        db.collection("room").find({}).toArray(function (err, result) {
+            if (err) throw err;
+            result.forEach(function(element) {
+                if(element.ID == _roomid)
+                    return element;
+            }, this);
+        });
+        db.close();
+    });
+}
+
+function forwardMessageTo(_messageID, _newReceiver) {
     MongoClient.connect(url, function (err, db) {
         if (err) throw err;
         db.collection("message").find({}).toArray(function (err, result) {
@@ -335,4 +396,3 @@ function checkUsers(_phonenumber) {
 
 server.listen(port);  
 console.log("Server is up and running. Listening on port: " + port);
-

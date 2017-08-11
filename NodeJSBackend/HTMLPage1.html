@@ -73,7 +73,8 @@
         // listener for 'thread' event, which updates messages
         socket.on('messageResponse', function (data) {
             console.log("im in now in message response")
-            $('#thread').append('<li>' + data.msgObject.Data + '</li>');
+            console.log(data.textToDisplay);
+            $('#thread').append('<li>' + data.textToDisplay + ' and status: "' + data.status + '"</li>');
         });
 
         socket.on('userNowRegistered', function (sessionID) {
@@ -86,7 +87,7 @@
              var from = $('#from').val();
              var to = $('#to').val();
              console.log("Sending " + { sender: '102922120355654028822', reciever: '106704918007689248932', Type: 'text', Data: message});
-             socket.emit('pushMessage',{ Sender: from, Reciever: to, Type: "text", Data: message});
+             socket.emit('pushMessage',{ sender: from, reciever: to, type: "text", data: message});
              this.reset();
              return false;
          });

@@ -80,7 +80,8 @@ io.on('connection', function(socket) {
     //SOCKETIO FUNCTIONS FOR ROOMS
 
     socket.on('getAllRooms', function(user) {
-        socket.emit('roomResponse', getAllRoomsWithArray(user.username));
+        console.log(user);
+        socket.emit('roomResponse', getAllRoomsWithArray(user));
     });
 
     socket.on('createRoom', function(room) {
@@ -169,16 +170,15 @@ function getSocketIDfromGID(gid) {
     return false;
 }
 
-function getAllRoomsWithArray(_username) {
+function getAllRoomsWithArray(user) {
     var allRooms = [];
-    
-    myrooms.forEach(function(element) {
-        element.users.forEach(function(user){
-            if(user.username == _username) {
-                allRooms.push(element);
-            }
-        });
-    });
+    //#sabber #codeporn
+    allRooms = myrooms.filter(function (element){
+        return element.users.some(function (c){
+            return c.username = user.username;
+        })
+    })
+    console.log(allRooms)
     return allRooms;
 }
 

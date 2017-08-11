@@ -71,7 +71,6 @@ io.on('connection', function(socket) {
     socket.on('createRoom', function(room) {
         var idgenerator = new IDGenerator();
         room.id = idgenerator.generate();
-
         insertRoom(room);
     });
 
@@ -79,7 +78,10 @@ io.on('connection', function(socket) {
         var myRoom;
         if(message != undefined) {
             myRoom = getRoom(roomid);
-            socket.broadcast.to(myRoom.ID).emit('messageResponse', { textToDisplay: message.data, status: "successful" });
+            myRoom.forEach(function (user){
+                socket.broadcast.to(getSocketIDfromUsername(user.username)).emit('messageResponse', { textToDisplay: message.data, status: "successful" });
+            });
+            
             insertmessage(getUserWithSocketID(socket.id), message.type, message.data);
         }
 

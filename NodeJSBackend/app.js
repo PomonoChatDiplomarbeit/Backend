@@ -11,9 +11,24 @@ var MongoClient = require('mongodb').MongoClient;
 var url = "mongodb://10.157.80.81:27017/diplom";
 var ObjectId = require('mongodb').ObjectId; 
 
+//Classes
+var Room = require('./allClasses.js');
+var Message = require('./allClasses.js');
+var User = require('./allClasses.js');
+
 //Objects
 var sockets = [];
 var onlineUsers = [];
+var myrooms = [
+                new Room('room 1', '1', [], [
+                    new Message('Sandro', 'text', 'abc','8:56'),
+                    new Message('Dragan', 'text', 'cde','8:57')
+                ], 'S'),
+                new Room('room 2', '2', [], [
+                    new Message('sepi', 'text', 'abc','8:56'),
+                    new Message('pepi', 'text', 'cde','8:57')
+                ], 'S')
+            ];
 
 app.use(express.static(__dirname + '/bower_components'));  
 
@@ -64,8 +79,9 @@ io.on('connection', function(socket) {
 
     //SOCKETIO FUNCTIONS FOR ROOMS
 
-    socket.on('getAllRooms', function(username) {
-        socket.emit('roomResponse', { room: getAllRooms(username) });
+    socket.on('getAllRooms', function(user) {
+        //socket.emit('roomResponse', getAllRoomsWithArray(user.username));
+        socket.emit('roomResponse', myrooms);
     });
 
     socket.on('createRoom', function(room) {
@@ -153,6 +169,21 @@ function getSocketIDfromGID(gid) {
     
     return false;
 }
+
+function getAllRoomsWithArray(_username) {
+    var allRooms = [];
+    
+    myrooms.forEach(function(element) {
+        element.users.forEach(function(user){
+            if(user.username == _username) {
+                allRooms.push(element);
+            }
+        });
+    });
+    return allRooms;
+}
+
+
 function userAlreadyExists(socketid) {
     users.forEach(function(key, value) {
         if(socketid == key)

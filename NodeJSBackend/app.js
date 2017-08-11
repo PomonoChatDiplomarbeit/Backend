@@ -5,6 +5,7 @@ var server = require('http').createServer(app);
 var io = require('socket.io')(server);
 var crypto = require('crypto');
 var path = require('path');
+const dateTime = require('date-time');
 
 //DATABASE
 var MongoClient = require('mongodb').MongoClient;
@@ -86,6 +87,8 @@ io.on('connection', function(socket) {
     socket.on('createRoom', function(room) {
         var idgenerator = new IDGenerator();
         room.id = idgenerator.generate();
+        room.timestamp = dateTime();
+        socket.emit('roomAdded', room);
         insertRoom(room);
     });
 

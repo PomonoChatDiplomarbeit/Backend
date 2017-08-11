@@ -20,7 +20,7 @@ var User = require('./allClasses.js');
 var sockets = [];
 var onlineUsers = [];
 var myrooms = [
-                new Room('room 1', '1', [], [
+                new Room('room 1', '1', [new User("Sandro")], [
                     new Message('Sandro', 'text', 'abc','8:56'),
                     new Message('Dragan', 'text', 'cde','8:57')
                 ], 'S'),
@@ -80,8 +80,7 @@ io.on('connection', function(socket) {
     //SOCKETIO FUNCTIONS FOR ROOMS
 
     socket.on('getAllRooms', function(user) {
-        //socket.emit('roomResponse', getAllRoomsWithArray(user.username));
-        socket.emit('roomResponse', myrooms);
+        socket.emit('roomResponse', getAllRoomsWithArray(user.username));
     });
 
     socket.on('createRoom', function(room) {

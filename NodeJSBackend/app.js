@@ -41,39 +41,59 @@ io.on('connection', function(socket) {
     socket.emit('connected', { status: "online" });
 
     socket.on('connectWithGoogle', function (gid) {
-        if(!getSocketIDfromGID(gid)) {
-            sockets.push({ socketid: socket.id, googleid: gid });
-            console.log("Socket with Google ID stored.");
-            socket.emit('connectedWithGoogle');
+        try {
+            if(!getSocketIDfromGID(gid)) {
+                sockets.push({ socketid: socket.id, googleid: gid });
+                console.log("Socket with Google ID stored.");
+                socket.emit('connectedWithGoogle');
+            }
+            
+            else {
+                console.log("No association with this Google ID found.");
+                socket.emit('connectedWithGoogle');
+            }
         }
-        
-        else {
-            console.log("No association with this Google ID found.");
-            socket.emit('connectedWithGoogle');
+        catch(errorMessage) {
+            console.log(errorMessage);
         }
     });
 
     socket.on('login', function(givenUser) {
-        onlineUsers.push({user: givenUser, socketid: socket.id});
-        socket.emit('loginResponse', {status: "loggedIn", user: givenUser});
+        try {
+            onlineUsers.push({user: givenUser, socketid: socket.id});
+            socket.emit('loginResponse', {status: "loggedIn", user: givenUser});
+        }
+        catch(errorMessage) {
+            console.log(errorMessage);
+        }
     });
 
     socket.on('pushMessage', function(message) {
-        console.log(message);
-        if(message != undefined) {
-            console.log("Socket id: " + getSocketIDfromUsername(message.reciever) + " Message: " + message.data);
-            socket.broadcast.to(getSocketIDfromUsername(message.reciever)).emit('messageResponse', { textToDisplay: message.data, status: "successful" });
-            insertmessage(message.sender, message.reciever, "text", message.data);
-        }
+        try {
+            console.log(message);
+            if(message != undefined) {
+                console.log("Socket id: " + getSocketIDfromUsername(message.reciever) + " Message: " + message.data);
+                socket.broadcast.to(getSocketIDfromUsername(message.reciever)).emit('messageResponse', { textToDisplay: message.data, status: "successful" });
+                insertmessage(message.sender, message.reciever, "text", message.data);
+            }
 
-        else 
-            io.to(getSocketIDfromUsername(message.sender)).emit('messageResponse', { textToDisplay: "Message has no content, try it again", status: "failed" });
+            else 
+                io.to(getSocketIDfromUsername(message.sender)).emit('messageResponse', { textToDisplay: "Message has no content, try it again", status: "failed" });
+        }
+        catch(errorMessage) {
+            console.log(errorMessage);
+        }
     });  
 
-    socket.on('disconnectUser', function(socket){
-        removeSocket(socket);
-        socket.emit('disconnected', { status: "offline" });
-        console.log("User went offline. ");
+    socket.on('disconnect', function(socket){
+        try {
+            removeSocket(socket);
+            socket.emit('disconnected', { status: "offline" });
+            console.log("User went offline. ");
+        }
+        catch(errorMessage){
+            console.log(errorMessage);
+        }
     });
 
 
@@ -81,31 +101,68 @@ io.on('connection', function(socket) {
     //SOCKETIO FUNCTIONS FOR ROOMS
 
     socket.on('getAllRooms', function(user) {
-        console.log(user);
-        socket.emit('roomResponse', getAllRoomsWithArray(user));
+        try {
+            console.log(user);
+            socket.emit('roomResponse', getAllRoomsWithArray(user));
+        }
+        catch(errorMessage) {
+            console.log(errorMessage);
+        }
     });
 
     socket.on('createRoom', function(room) {
-        var idgenerator = new IDGenerator();
-        room.id = idgenerator.generate();
-        room.timestamp = dateTime();
-        socket.emit('roomAdded', room);
-        insertRoom(room);
+        try {
+            var idgenerator = new IDGenerator();
+            room.id = idgenerator.generate();
+            room.timestamp = dateTime();
+            socket.emit('roomAdded', room);
+            insertRoom(room);
+        }
+        catch(errorMessage) {
+            console.log(errorMessage);
+        }
     });
 
     socket.on('pushMessageRoom', function(roomid, message) {
         var myRoom;
-        if(message != undefined) {
-            myRoom = getRoom(roomid);
-            myRoom.forEach(function (user){
-                socket.broadcast.to(getSocketIDfromUsername(user.username)).emit('messageResponse', { textToDisplay: message.data, status: "successful" });
-            });
-            
-            insertmessage(getUserWithSocketID(socket.id), message.type, message.data);
-        }
+        
+        try {
+            if(message != undefined) {
+                myRoom = getRoom(roomid);
+                myRoom.forEach(function (user){
+                    socket.broadcast.to(getSocketIDfromUsername(user.username)).emit('messageResponse', { textToDisplay: message.data, status: "successful" });
+                });
+                
+                insertmessage(getUserWithSocketID(socket.id), message.type, message.data);
+            }
 
-        else 
-            io.to(socket.id).emit('messageResponse', { textToDisplay: "Message has no content, try it again", status: "failed" });
+            else 
+                io.to(socket.id).emit('messageResponse', { textToDisplay: "Message has no content, try it again", status: "failed" });
+        }
+        catch(errorMessage) {
+            console.log(errorMessage);
+        }
+    });
+
+    //GENERATING TEST DATA
+
+    socket.on('testGeneration', function(testDataInsertion) {
+        try {
+            
+            //USER-INSERTS
+            insertUser("Dragan");
+            insertUser("Sandro");
+            insertUser("Fabian");
+            insertUser("Jakob");
+
+            //MESSAGE-INSERTS
+            
+            //ROOM-INSERTS
+
+        }
+        catch(errorMessage) {
+            console.log(errorMessage);
+        }
     });
 });
 
@@ -136,63 +193,89 @@ io.on('connection', function(socket) {
 // CUSTOM FUNCTIONS BEGINNING
 function getSocketIDfromUsername(username) {
     var socketid;
-    onlineUsers.forEach(function (element){
-        if(element.user == username) {
-            socketid = element.socketid;
-        }
-    });
+    try {
+        onlineUsers.forEach(function (element){
+            if(element.user == username) {
+                socketid = element.socketid;
+            }
+        }, this);
+    }
+    catch(errorMessage) {
+        console.log("Get socket id off a username failed: " + errorMessage);
+    }
     return socketid;
 }
 
 function getUserWithSocketID(socketid) {
     var username;
-    onlineUsers.forEach(function (user) {
-        if(user.socketid == socketid) {
-            username = user.username;
-            break;
-        }
-    }, this);
+    try {
+        onlineUsers.forEach(function (user) {
+            if(user.socketid == socketid) {
+                username = user.username;
+                break;
+            }
+        }, this);
+    }
+    catch(errorMessage) {
+        console.log("Find user by socket id failed: " + errorMessage);
+    }
     return username;
 }
 
 function removeSocket(socket) {
-    for(var i = 0; i < sockets.length; i++) {
-        if(socket == sockets[i].socketid)
-            array.splice(i, 1);
+    try {
+        for(var i = 0; i < sockets.length; i++) {
+            if(socket == sockets[i].socketid)
+                array.splice(i, 1);
+        }
+    }
+    catch(errorMessage) {
+        console.log("Removing socket failed: " + errorMessage);
     }
 }
 function getSocketIDfromGID(gid) {
     var socketid;
-    sockets.forEach(function (element) {
-        if (element.googleid == gid) {
-            socketid = element.socketid;
-            return socketid;
-        }
-    });
-    
-    return false;
+    try {
+        sockets.forEach(function (element) {
+            if (element.googleid == gid) {
+                socketid = element.socketid;
+                return socketid;
+            }
+        });
+    }
+    catch(errorMessage) {
+        console.log("Getting socket id from google id failed: " + errorMessage);
+        return false;
+    }
 }
 
 function getAllRoomsWithArray(user) {
     var allRooms = [];
-    //#sabber #codeporn
-    allRooms = myrooms.filter(function (element){
-        return element.users.some(function (c){
-            return c.username = user.username;
+    try {
+        allRooms = myrooms.filter(function (element){
+            return element.users.some(function (c){
+                return c.username = user.username;
+            })
         })
-    })
-    console.log(allRooms)
-    return allRooms;
+        return allRooms;
+    }
+    catch(errorMessage) {
+        console.log("Get all rooms from array failed: " + errorMessage)
+    }
 }
 
 
 function userAlreadyExists(socketid) {
-    users.forEach(function(key, value) {
-        if(socketid == key)
-            return true;
-    });
-
-    return false;
+    try {
+        users.forEach(function(key, value) {
+            if(socketid == key)
+                return true;
+        });
+    }
+    catch(errorMessage) {
+        console.log("There is already a user with that socketid");
+        return false;
+    }
 }
 
 // CUSTOM FUNCTIONS END
@@ -343,36 +426,57 @@ function getMessagesForChat(_nrOfMessagesToLoad, _sender, _receiver) {
     
 }
 
-function getAllRooms(_username) {
+function getAllRoomsForAGivenUsername(_username) {
     var allRooms = [];
-    MongoClient.connect(url, function (err, db) {
-        if (err) throw err;
-        db.collection("room").find({}).toArray(function (err, result) {
-            if (err) throw err;
-            result.forEach(function(element) {
-                element.users.forEach(function(user) {
-                    if(user == _username)
-                        allRooms.push(element);
-                });
-            }, this);
-            return allRooms;
+
+    try {
+        MongoClient.connect(url, function (err, db) {
+            if(err) {
+                throw "Could not connect to the database"
+            }
+            db.collection("room").find({}).toArray(function (err, result) {
+                if(err) {
+                    throw "Could not access the table in the database"
+                }
+                result.forEach(function(element) {
+                    element.users.forEach(function(user) {
+                        if(user == _username)
+                            allRooms.push(element);
+                    });
+                }, this);
+                return allRooms;
+            });
+            db.close();
         });
-        db.close();
-    });
+    }
+
+    catch(errorMessage) {
+        console.log(errorMessage);
+    }
 }
 
-function getRoom(_roomid) {
-    MongoClient.connect(url, function (err, db) {
-        if (err) throw err;
-        db.collection("room").find({}).toArray(function (err, result) {
-            if (err) throw err;
-            result.forEach(function(element) {
-                if(element.ID == _roomid)
-                    return element;
-            }, this);
+function getRoomByID(_roomid) {
+    try {
+        MongoClient.connect(url, function (err, db) {
+            if(err) {
+                throw "Could not connect to the database"
+            }
+            db.collection("room").find({}).toArray(function (err, result) {
+                if(err) {
+                    throw "Could not access the table in the database"
+                }
+                result.forEach(function(element) {
+                    if(element.ID == _roomid)
+                        return element;
+                }, this);
+            });
+            db.close();
         });
-        db.close();
-    });
+    }
+
+    catch(errorMessage) {
+        console.log()
+    }
 }
 
 function forwardMessageTo(_messageID, _newReceiver) {

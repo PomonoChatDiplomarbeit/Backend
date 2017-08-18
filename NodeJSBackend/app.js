@@ -156,9 +156,14 @@ io.on('connection', function(socket) {
             insertUser("Jakob");
 
             //MESSAGE-INSERTS
-            
+            insertMessage("Dragan", "text", "Hallo Jakob", dateTime());
+            insertMessage("Sandro", "text", "Hallo Dragan", dateTime());
+            insertMessage("Fabian", "text", "Hallo Sandro", dateTime());
+            insertMessage("Jakob", "text", "Hallo Fabian", dateTime());
             //ROOM-INSERTS
-
+            myrooms.forEach(function(element){
+                insertRoom(element);
+            });
         }
         catch(errorMessage) {
             console.log(errorMessage);

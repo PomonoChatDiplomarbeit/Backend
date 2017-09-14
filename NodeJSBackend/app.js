@@ -38,7 +38,7 @@ io.on('userConnection', function(socket) {
         }
         
         else {
-            console.log("No association with this Google ID found.");
+            console.log("No socketid with this Google ID found.");
             socket.emit('connectedWithGoogle');
         }
     });
@@ -150,11 +150,10 @@ function insertgroup(_groupname, _members) {
 //+
 //***********************delete***********************
 function deleteGroup(group_id) {
-    var a = ObjectId(group_id);
     MongoClient.connect(url, function (err, db) {
         if (err) throw err;
 
-        db.collection("chat_group").deleteOne({ _id: a }, function (err, obj) {
+        db.collection("chat_group").deleteOne({ _id: ObjectId(group_id) }, function (err, obj) {
             if (err) throw err;
             console.log("1 document deleted");
             db.close();
@@ -162,13 +161,12 @@ function deleteGroup(group_id) {
     });
 }
 //+
-function deleteMessage(MesssageID) {
-    var a = ObjectId(MesssageID);
+function deleteMessage(message_id) {
     MongoClient.connect(url, function (err, db) {
         if (err) throw err;
-        db.collection("message").deleteOne({ _id: a }, function (err, obj) {
+        db.collection("message").deleteOne({ _id: ObjectId(message_id) }, function (err, obj) {
             if (err) throw err;
-            console.log("1 document deleted");
+            console.log("1 message deleted");
             db.close();
         });
     });
@@ -199,12 +197,12 @@ function updateUser(userId, newValues) {
     });
 }
 //+
-function updateMessage(messageID, b) {
-    var a = ObjectId(messageID);
+function updateMessage(messageID, newMessage) {
+    var messageObjectID = ObjectId(messageID);
     MongoClient.connect(url, function (err, db) {
         if (err) throw err;
 
-        db.collection("message").updateOne({ _id: a }, b, function (err, res) {
+        db.collection("message").updateOne({ _id: messageObjectID }, newMessage, function (err, res) {
             if (err) throw err;
             console.log("1 record updated");
             db.close();
@@ -250,13 +248,13 @@ function GetMessagesForChat(NrOfMessagesToLoad, _sender, _receiver) {
     return messageObject;
 }
 //-
-function ForwardMessageTo(MessageID, newReceiver) {
+function ForwardMessageTo(messageID, newReceiver) {
     MongoClient.connect(url, function (err, db) {
         if (err) throw err;
         db.collection("message").find({}).toArray(function (err, result) {
             if (err) throw err;
             for (var i = 0; i < result.length; i++) {
-                if (result[i]._id == MessageID) {
+                if (result[i]._id == messageID) {
                     insertmessage(result[i].Sender, newReceiver, result[i].Type, result[i].Data);
                 }
             }
@@ -265,19 +263,19 @@ function ForwardMessageTo(MessageID, newReceiver) {
     });
 }
 //+
-function SearchUser(searchString) {
-    var a;
+function SearchUser(stringToSearchFor) {
+    var allUsers;
     MongoClient.connect(url, function (err, db) {
         if (err) throw err;
-        db.collection("user").find({ phonenumber: searchString }, function (err, result) {
+        db.collection("user").find({ phonenumber: stringToSearchFor }, function (err, result) {
             if (err) throw err;
-            a = result;
-            console.log(a + "    " + result.phonenumber);
+            allUsers = result;
+            console.log(allUsers + "    " + result.phonenumber);
             db.close();
         });
 
     });
-    return a;
+    return allUsers;
 }
 
 function checkUsers(_phonenumber) {

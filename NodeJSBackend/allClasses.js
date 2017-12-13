@@ -7,8 +7,9 @@ module.exports = class Message{
     }
 };
 module.exports = class User{
-    constructor(username) {
+    constructor(username, pwd) {
         this.username = username
+        this.pwd = pwd
     }
 };
 module.exports = class Room{

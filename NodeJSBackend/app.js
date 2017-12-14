@@ -14,18 +14,24 @@ io.on('connection', function (socket) {
                 socket.emit('login-response', 'ERROR');
         });
     });
-    
+
     socket.on('load rooms for user', function (username) {
-       DB.getRoomsForUser(username, result => {
+        DB.getRoomsForUser(username, result => {
             socket.emit('room-response', result);
-       });
+        });
     });
 
-    socket.on('add message to room', function (roomId,message) {
+    socket.on('add message to room', function (roomId, message) {
         DB.addMessageToRoom(message, roomId, e => {
             socket.broadcast.emit('reloadRooms', {});
         });
-     });
+    });
+    
+    socket.on('createNewRoom', function (roomName, users) {
+        DB.createRoom(roomName, users, e => {
+            socket.broadcast.emit('reloadRooms', {});
+        });
+    });
 });
 
 http.listen(port, function () {

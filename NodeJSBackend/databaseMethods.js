@@ -64,3 +64,20 @@ exports.addMessageToRoom = function (message,roomID, callback) {
         callback('ERROR');
     }
 }
+exports.createRoom = function (roomName,users, callback) {
+    try {
+        MongoClient.connect(mongoUri, function (err, db) {
+            if (err) throw err;
+            var myobj = {
+                name: roomName,
+                members: users
+            };
+            db.collection("rooms").insertOne(myobj, function (err, insertresult) {
+                if (err) throw err;
+                callback();
+            });
+        });
+    } catch (error) {
+        callback('ERROR');
+    }
+}
